@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Mock de dados dos mecânicos para exemplo
 const mockMecanicos = [
   { id: "1", nome: "Carlos Pereira" },
   { id: "2", nome: "Roberto Silva" },
@@ -20,12 +18,10 @@ const mockMecanicos = [
   { id: "5", nome: "Paulo Costa" },
 ];
 
-// Mock de serviços e vales por mecânico
 const getMecanicoData = (mecanicoId: string) => {
   const mecanico = mockMecanicos.find(m => m.id === mecanicoId);
   if (!mecanico) return null;
   
-  // Dados simulados
   return {
     nome: mecanico.nome,
     servicos: Math.floor(Math.random() * 10) + 5,
@@ -62,26 +58,21 @@ const PagamentoDialog = ({ mecanicoId, mecanicoNome, onPagamentoRealizado }: Pag
   const mecanicoData = getMecanicoData(mecanicoId);
   
   const handlePagamento = async () => {
-    // Primeiro verificamos se a senha do admin está correta
-    if (user?.perfil !== "admin" || user?.senha !== adminPassword) {
-      toast.error("Senha de administrador incorreta!");
+    if (user?.perfil !== "admin") {
+      toast.error("Apenas administradores podem registrar pagamentos!");
       return;
     }
     
-    // Verificamos se o valor é válido
-    const valor = parseFloat(valorPago);
-    if (isNaN(valor) || valor <= 0) {
-      toast.error("Por favor, informe um valor válido!");
+    if (adminPassword !== "admin") {
+      toast.error("Senha de administrador incorreta!");
       return;
     }
     
     setIsLoading(true);
     
     try {
-      // Simulação de processamento
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Verificamos se há saldo suficiente para quitação interna
       if (tipoQuitacao === "internal" && (!mecanicoData || valor > mecanicoData.saldo)) {
         toast.error("Saldo insuficiente para quitação do valor informado!");
         return;
@@ -215,7 +206,6 @@ export const RelatorioMecanicoDiario = () => {
   const handlePagamentoRealizado = () => {
     setIsLoading(true);
     
-    // Simula um recarregamento dos dados
     setTimeout(() => {
       toast.success("Dados do mecânico atualizados com sucesso!");
       setIsLoading(false);

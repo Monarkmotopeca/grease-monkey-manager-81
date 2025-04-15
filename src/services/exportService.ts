@@ -1,4 +1,3 @@
-
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -432,7 +431,7 @@ export const exportarRelatorioDiarioMecanico = (
     yPos += 5;
     doc.text(`Total de Vales: ${formatarValor(mecanico.vales.reduce((acc, vale) => acc + (!vale.pago ? vale.valor : 0), 0))}`, 14, yPos);
     yPos += 5;
-    doc.text(`Saldo Disponível: ${formatarValor(mecanico.saldo)}`, 14, yPos, { align: 'left', style: 'bold' });
+    doc.text(`Saldo Disponível: ${formatarValor(mecanico.saldo)}`, 14, yPos, { align: 'left' });
     yPos += 15;
     
     // Serviços do dia
