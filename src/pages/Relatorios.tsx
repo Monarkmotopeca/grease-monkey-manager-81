@@ -17,6 +17,8 @@ import {
   exportarRelatorioMecanicos,
   exportarRelatorioVales
 } from "@/services/exportService";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RelatorioMecanicoDiario from "@/components/RelatorioMecanicoDiario";
 
 // Mock de dados para os relatórios
 const mockServicosData = [
@@ -60,6 +62,7 @@ const COLORS = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57'
 const Relatorios = () => {
   const [periodoSelecionado, setPeriodoSelecionado] = useState("semestre");
   const [anoSelecionado, setAnoSelecionado] = useState("2025");
+  const [activeTab, setActiveTab] = useState("geral");
 
   const handleExportarRelatorioPDF = () => {
     try {
@@ -146,223 +149,236 @@ const Relatorios = () => {
             </Button>
           </div>
         </div>
+        
+        <Tabs defaultValue="geral" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="geral">Relatório Geral</TabsTrigger>
+            <TabsTrigger value="diario">Relatório Diário</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="geral">
+            {/* Resumo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Total de Serviços</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <Wrench className="h-8 w-8 text-blue-500 mr-3" />
+                    <div>
+                      <span className="text-3xl font-bold">{totalServicos}</span>
+                      <p className="text-sm text-gray-500">No período</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total de Serviços</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <Wrench className="h-8 w-8 text-blue-500 mr-3" />
-                <div>
-                  <span className="text-3xl font-bold">{totalServicos}</span>
-                  <p className="text-sm text-gray-500">No período</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Valor Total (Serviços)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-green-500 mr-3" />
+                    <div>
+                      <span className="text-3xl font-bold">{formatarValor(totalValorServicos)}</span>
+                      <p className="text-sm text-gray-500">No período</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Valor Total (Serviços)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-green-500 mr-3" />
-                <div>
-                  <span className="text-3xl font-bold">{formatarValor(totalValorServicos)}</span>
-                  <p className="text-sm text-gray-500">No período</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Total de Vales</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-amber-500 mr-3" />
+                    <div>
+                      <span className="text-3xl font-bold">{totalVales}</span>
+                      <p className="text-sm text-gray-500">No período</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total de Vales</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-amber-500 mr-3" />
-                <div>
-                  <span className="text-3xl font-bold">{totalVales}</span>
-                  <p className="text-sm text-gray-500">No período</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Valor Total (Vales)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-purple-500 mr-3" />
+                    <div>
+                      <span className="text-3xl font-bold">{formatarValor(totalValorVales)}</span>
+                      <p className="text-sm text-gray-500">No período</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Valor Total (Vales)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-purple-500 mr-3" />
-                <div>
-                  <span className="text-3xl font-bold">{formatarValor(totalValorVales)}</span>
-                  <p className="text-sm text-gray-500">No período</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Gráficos */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Serviços por Mês</CardTitle>
+                  <CardDescription>
+                    Quantidade e valor dos serviços realizados por mês
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={mockServicosData}
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 20,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="mes" />
+                        <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                        <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                        <Tooltip formatter={(value, name) => {
+                          if (name === "valor") return formatarValor(value as number);
+                          return value;
+                        }} />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="quantidade" name="Quantidade" fill="#8884d8" />
+                        <Bar yAxisId="right" dataKey="valor" name="Valor (R$)" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Serviços por Mês</CardTitle>
-              <CardDescription>
-                Quantidade e valor dos serviços realizados por mês
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={mockServicosData}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                    <Tooltip formatter={(value, name) => {
-                      if (name === "valor") return formatarValor(value as number);
-                      return value;
-                    }} />
-                    <Legend />
-                    <Bar yAxisId="left" dataKey="quantidade" name="Quantidade" fill="#8884d8" />
-                    <Bar yAxisId="right" dataKey="valor" name="Valor (R$)" fill="#82ca9d" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição de Serviços por Tipo</CardTitle>
+                  <CardDescription>
+                    Participação de cada tipo de serviço no faturamento
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={mockTipoServicosData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="valor"
+                          nameKey="nome"
+                          label={({ nome, percent }) => `${nome}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {mockTipoServicosData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value, name, props) => {
+                          if (props && props.payload && props.payload.nome) {
+                            return [formatarValor(value as number), props.payload.nome];
+                          }
+                          return [value, name];
+                        }} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuição de Serviços por Tipo</CardTitle>
-              <CardDescription>
-                Participação de cada tipo de serviço no faturamento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={mockTipoServicosData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="valor"
-                      nameKey="nome"
-                      label={({ nome, percent }) => `${nome}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {mockTipoServicosData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name, props) => {
-                      if (props && props.payload && props.payload.nome) {
-                        return [formatarValor(value as number), props.payload.nome];
-                      }
-                      return [value, name];
-                    }} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vales Emitidos por Mês</CardTitle>
+                  <CardDescription>
+                    Evolução da quantidade e valor dos vales
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={mockValesData}
+                        margin={{
+                          top: 5,
+                          right: 30,
+                          left: 20,
+                          bottom: 5,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="mes" />
+                        <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                        <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                        <Tooltip formatter={(value, name) => {
+                          if (name === "valor") return formatarValor(value as number);
+                          return value;
+                        }} />
+                        <Legend />
+                        <Line yAxisId="left" type="monotone" dataKey="quantidade" name="Quantidade" stroke="#8884d8" activeDot={{ r: 8 }} />
+                        <Line yAxisId="right" type="monotone" dataKey="valor" name="Valor (R$)" stroke="#82ca9d" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Vales Emitidos por Mês</CardTitle>
-              <CardDescription>
-                Evolução da quantidade e valor dos vales
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={mockValesData}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                    <Tooltip formatter={(value, name) => {
-                      if (name === "valor") return formatarValor(value as number);
-                      return value;
-                    }} />
-                    <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="quantidade" name="Quantidade" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    <Line yAxisId="right" type="monotone" dataKey="valor" name="Valor (R$)" stroke="#82ca9d" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Desempenho por Mecânico</CardTitle>
-              <CardDescription>
-                Serviços realizados e comissões por mecânico
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Mecânico</TableHead>
-                      <TableHead>Serviços</TableHead>
-                      <TableHead>Comissão (5%)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockMecanicoData.map((mecanico, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{mecanico.nome}</TableCell>
-                        <TableCell>{mecanico.servicos}</TableCell>
-                        <TableCell>{formatarValor(mecanico.comissao)}</TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell className="font-bold">Total</TableCell>
-                      <TableCell className="font-bold">
-                        {mockMecanicoData.reduce((acc, item) => acc + item.servicos, 0)}
-                      </TableCell>
-                      <TableCell className="font-bold">
-                        {formatarValor(mockMecanicoData.reduce((acc, item) => acc + item.comissao, 0))}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Desempenho por Mecânico</CardTitle>
+                  <CardDescription>
+                    Serviços realizados e comissões por mecânico
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Mecânico</TableHead>
+                          <TableHead>Serviços</TableHead>
+                          <TableHead>Comissão (5%)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockMecanicoData.map((mecanico, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{mecanico.nome}</TableCell>
+                            <TableCell>{mecanico.servicos}</TableCell>
+                            <TableCell>{formatarValor(mecanico.comissao)}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell className="font-bold">Total</TableCell>
+                          <TableCell className="font-bold">
+                            {mockMecanicoData.reduce((acc, item) => acc + item.servicos, 0)}
+                          </TableCell>
+                          <TableCell className="font-bold">
+                            {formatarValor(mockMecanicoData.reduce((acc, item) => acc + item.comissao, 0))}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="diario">
+            <RelatorioMecanicoDiario />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

@@ -28,7 +28,8 @@ const sendToApi = async (operation: OfflineOperation): Promise<boolean> => {
 export const synchronizeData = async (): Promise<{ 
   success: boolean, 
   processed: number, 
-  failed: number 
+  failed: number,
+  details?: string[]
 }> => {
   // Verifica se há conexão com a internet
   if (!navigator.onLine) {
@@ -45,6 +46,7 @@ export const synchronizeData = async (): Promise<{
     
     let processed = 0;
     let failed = 0;
+    const details: string[] = [];
     
     // Exibe um toast de início
     const syncToast = toast.loading(`Sincronizando ${pendingOperations.length} alterações...`);
@@ -58,6 +60,21 @@ export const synchronizeData = async (): Promise<{
           // Remove a operação da fila
           await removePendingOperation(operation.id);
           processed++;
+          
+          // Adiciona detalhes da operação sincronizada
+          const entityName = operation.entity === 'mecanico' 
+            ? 'Mecânico' 
+            : operation.entity === 'servico' 
+              ? 'Serviço' 
+              : 'Vale';
+          
+          const operationName = operation.operation === 'create' 
+            ? 'criado' 
+            : operation.operation === 'update' 
+              ? 'atualizado' 
+              : 'removido';
+          
+          details.push(`${entityName} ${operationName} com sucesso.`);
           
           // Atualiza o toast com o progresso
           toast.loading(`Sincronizando... (${processed}/${pendingOperations.length})`, {
@@ -86,7 +103,8 @@ export const synchronizeData = async (): Promise<{
     return {
       success: failed === 0,
       processed,
-      failed
+      failed,
+      details
     };
   } catch (error) {
     console.error("Erro na sincronização:", error);

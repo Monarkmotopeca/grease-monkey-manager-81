@@ -12,6 +12,7 @@ export const StatusSincronizacao = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncDetails, setSyncDetails] = useState<string[]>([]);
 
   // Carregar a data da última sincronização do localStorage
   useEffect(() => {
@@ -31,6 +32,30 @@ export const StatusSincronizacao = () => {
     }
   };
 
+  // Mostrar detalhes de sincronização, um por vez
+  const showSyncDetails = () => {
+    if (syncDetails.length > 0) {
+      const detail = syncDetails[0];
+      toast.info(detail, {
+        position: "top-left",
+        duration: 3000,
+        onDismiss: () => {
+          setSyncDetails(prev => prev.slice(1));
+          if (syncDetails.length > 1) {
+            setTimeout(showSyncDetails, 500);
+          }
+        }
+      });
+    }
+  };
+
+  // Efeito para mostrar detalhes de sincronização quando houver
+  useEffect(() => {
+    if (syncDetails.length > 0) {
+      showSyncDetails();
+    }
+  }, [syncDetails]);
+
   // Sincronizar dados
   const handleSync = async () => {
     if (!isOnline) {
@@ -43,26 +68,39 @@ export const StatusSincronizacao = () => {
       const result = await synchronizeData();
       
       if (result.success) {
-        toast.success(`Sincronização concluída! ${result.processed} alterações enviadas.`);
+        if (result.details && result.details.length > 0) {
+          // Adicionar detalhes para exibição sequencial
+          setSyncDetails(result.details);
+        } else {
+          toast.success(`Sincronização concluída! ${result.processed} alterações enviadas.`, {
+            position: "top-left"
+          });
+        }
         
         // Salvar data da última sincronização
         const now = new Date();
         localStorage.setItem("lastSync", now.toISOString());
         setLastSync(now);
       } else if (result.processed > 0) {
-        toast.warning(`Sincronização parcial: ${result.failed} alterações não sincronizadas.`);
+        toast.warning(`Sincronização parcial: ${result.failed} alterações não sincronizadas.`, {
+          position: "top-left"
+        });
         
         // Mesmo sendo parcial, salvamos a data
         const now = new Date();
         localStorage.setItem("lastSync", now.toISOString());
         setLastSync(now);
       } else {
-        toast.error("Falha na sincronização. Tente novamente mais tarde.");
+        toast.error("Falha na sincronização. Tente novamente mais tarde.", {
+          position: "top-left"
+        });
       }
       
       checkPendingOperations();
     } catch (error) {
-      toast.error("Erro ao sincronizar. Tente novamente mais tarde.");
+      toast.error("Erro ao sincronizar. Tente novamente mais tarde.", {
+        position: "top-left"
+      });
       console.error("Erro na sincronização:", error);
     } finally {
       setIsSyncing(false);
