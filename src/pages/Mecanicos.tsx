@@ -1,314 +1,242 @@
 
 import { useState } from "react";
-import Layout from "@/components/Layout";
+import { useOfflineData } from "@/hooks/useOfflineData";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Pencil, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { CloudOff, CloudCheck, Plus, RefreshCw, Edit, Trash2, Search } from "lucide-react";
 
-// Tipo para mecânicos
-type Mecanico = {
+interface Mecanico {
   id: string;
   nome: string;
-  cpf: string;
-  telefone: string;
   especialidade: string;
-  dataContratacao: string;
-  status: "ativo" | "inativo";
-};
-
-// Mock de dados iniciais
-const mockMecanicos: Mecanico[] = [
-  {
-    id: "1",
-    nome: "Carlos Pereira",
-    cpf: "123.456.789-00",
-    telefone: "(11) 91234-5678",
-    especialidade: "Motores",
-    dataContratacao: "2023-01-15",
-    status: "ativo",
-  },
-  {
-    id: "2",
-    nome: "Roberto Silva",
-    cpf: "987.654.321-00",
-    telefone: "(11) 98765-4321",
-    especialidade: "Elétrica",
-    dataContratacao: "2022-05-20",
-    status: "ativo",
-  },
-  {
-    id: "3",
-    nome: "Antônio Santos",
-    cpf: "456.789.123-00",
-    telefone: "(11) 95555-5555",
-    especialidade: "Suspensão",
-    dataContratacao: "2023-08-10",
-    status: "ativo",
-  },
-  {
-    id: "4",
-    nome: "José Oliveira",
-    cpf: "789.123.456-00",
-    telefone: "(11) 96666-6666",
-    especialidade: "Freios",
-    dataContratacao: "2021-03-05",
-    status: "ativo",
-  },
-  {
-    id: "5",
-    nome: "Paulo Costa",
-    cpf: "321.654.987-00",
-    telefone: "(11) 97777-7777",
-    especialidade: "Transmissão",
-    dataContratacao: "2022-11-30",
-    status: "ativo",
-  },
-];
+  telefone: string;
+  email: string;
+  observacoes: string;
+  createdAt: number;
+}
 
 const Mecanicos = () => {
-  const [mecanicos, setMecanicos] = useState<Mecanico[]>(mockMecanicos);
-  const [filteredMecanicos, setFilteredMecanicos] = useState<Mecanico[]>(mockMecanicos);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { data: mecanicos, loading, isOnline, pendingCount, saveItem, deleteItem, syncData } = useOfflineData<Mecanico>('mecanico');
   const [searchTerm, setSearchTerm] = useState("");
-  const [mecanicoEmEdicao, setMecanicoEmEdicao] = useState<Mecanico | null>(null);
-  const [formData, setFormData] = useState<Omit<Mecanico, "id">>({
+  const [open, setOpen] = useState(false);
+  const [editingMecanico, setEditingMecanico] = useState<Mecanico | null>(null);
+  const [formData, setFormData] = useState<Omit<Mecanico, 'id' | 'createdAt'>>({
     nome: "",
-    cpf: "",
-    telefone: "",
     especialidade: "",
-    dataContratacao: new Date().toISOString().split("T")[0],
-    status: "ativo",
+    telefone: "",
+    email: "",
+    observacoes: ""
   });
 
-  const { user } = useAuth();
-  const isAdmin = user?.perfil === "admin";
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    
-    if (!term.trim()) {
-      setFilteredMecanicos(mecanicos);
-      return;
-    }
-    
-    const filtered = mecanicos.filter(
-      mecanico =>
-        mecanico.nome.toLowerCase().includes(term.toLowerCase()) ||
-        mecanico.cpf.includes(term) ||
-        mecanico.especialidade.toLowerCase().includes(term.toLowerCase())
-    );
-    
-    setFilteredMecanicos(filtered);
-  };
+  const filteredMecanicos = mecanicos.filter(
+    m => m.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         m.especialidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         m.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const resetForm = () => {
+  const openNewMecanico = () => {
+    setEditingMecanico(null);
     setFormData({
       nome: "",
-      cpf: "",
-      telefone: "",
       especialidade: "",
-      dataContratacao: new Date().toISOString().split("T")[0],
-      status: "ativo",
+      telefone: "",
+      email: "",
+      observacoes: ""
     });
-    setMecanicoEmEdicao(null);
+    setOpen(true);
   };
 
-  const handleOpenDialog = (mecanico?: Mecanico) => {
-    if (mecanico) {
-      setMecanicoEmEdicao(mecanico);
-      setFormData({
-        nome: mecanico.nome,
-        cpf: mecanico.cpf,
-        telefone: mecanico.telefone,
-        especialidade: mecanico.especialidade,
-        dataContratacao: mecanico.dataContratacao,
-        status: mecanico.status,
-      });
-    } else {
-      resetForm();
-      setMecanicoEmEdicao(null);
-    }
-    setIsDialogOpen(true);
+  const openEditMecanico = (mecanico: Mecanico) => {
+    setEditingMecanico(mecanico);
+    setFormData({
+      nome: mecanico.nome,
+      especialidade: mecanico.especialidade,
+      telefone: mecanico.telefone,
+      email: mecanico.email,
+      observacoes: mecanico.observacoes
+    });
+    setOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validação básica
-    if (!formData.nome || !formData.cpf || !formData.telefone || !formData.especialidade) {
-      toast.error("Por favor, preencha todos os campos obrigatórios.");
+    try {
+      const mecanicoData: Mecanico = {
+        id: editingMecanico?.id || "",
+        ...formData,
+        createdAt: editingMecanico?.createdAt || Date.now()
+      };
+      
+      await saveItem(mecanicoData);
+      toast.success(
+        editingMecanico ? "Mecânico atualizado com sucesso!" : "Mecânico cadastrado com sucesso!"
+      );
+      
+      setOpen(false);
+    } catch (error) {
+      console.error("Erro ao salvar mecânico:", error);
+      toast.error("Ocorreu um erro ao salvar o mecânico");
+    }
+  };
+
+  const handleDelete = async (id: string, nome: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir o mecânico ${nome}?`)) {
+      try {
+        await deleteItem(id);
+        toast.success("Mecânico excluído com sucesso!");
+      } catch (error) {
+        console.error("Erro ao excluir mecânico:", error);
+        toast.error("Ocorreu um erro ao excluir o mecânico");
+      }
+    }
+  };
+
+  const handleSync = async () => {
+    if (!isOnline) {
+      toast.error("Você está offline. Não é possível sincronizar agora.");
       return;
     }
     
-    if (mecanicoEmEdicao) {
-      // Editar mecânico existente
-      const updatedMecanicos = mecanicos.map(mec =>
-        mec.id === mecanicoEmEdicao.id ? { ...formData, id: mec.id } : mec
-      );
-      setMecanicos(updatedMecanicos);
-      setFilteredMecanicos(updatedMecanicos);
-      toast.success("Mecânico atualizado com sucesso!");
+    const result = await syncData();
+    if (result.success) {
+      toast.success(`Sincronização concluída! ${result.processed} alterações enviadas.`);
+    } else if (result.processed > 0) {
+      toast.warning(`Sincronização parcial: ${result.failed} alterações não sincronizadas.`);
     } else {
-      // Adicionar novo mecânico
-      const newMecanico: Mecanico = {
-        id: (mecanicos.length + 1).toString(),
-        ...formData,
-      };
-      const updatedMecanicos = [...mecanicos, newMecanico];
-      setMecanicos(updatedMecanicos);
-      setFilteredMecanicos(updatedMecanicos);
-      toast.success("Mecânico adicionado com sucesso!");
+      toast.error("Falha na sincronização. Tente novamente mais tarde.");
     }
-    
-    setIsDialogOpen(false);
-    resetForm();
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este mecânico?")) {
-      const updatedMecanicos = mecanicos.filter(mec => mec.id !== id);
-      setMecanicos(updatedMecanicos);
-      setFilteredMecanicos(updatedMecanicos);
-      toast.success("Mecânico excluído com sucesso!");
-    }
-  };
-
-  const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
-    return data.toLocaleDateString('pt-BR');
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Mecânicos</h1>
-          {isAdmin && (
-            <Button onClick={() => handleOpenDialog()}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Novo Mecânico
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-2xl font-bold">Gerenciamento de Mecânicos</h1>
+          {!isOnline && (
+            <div className="rounded-full bg-yellow-100 dark:bg-yellow-900/20 p-1 text-yellow-800 dark:text-yellow-200">
+              <CloudOff className="h-5 w-5" />
+            </div>
+          )}
+          {isOnline && pendingCount > 0 && (
+            <div className="rounded-full bg-blue-100 dark:bg-blue-900/20 p-1 text-blue-800 dark:text-blue-200">
+              <CloudCheck className="h-5 w-5" />
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar mecânicos..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button onClick={openNewMecanico}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Mecânico
+          </Button>
+          {pendingCount > 0 && (
+            <Button variant="outline" onClick={handleSync} disabled={!isOnline}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Sincronizar ({pendingCount})
             </Button>
           )}
         </div>
-
-        <div className="bg-white shadow rounded-lg">
-          <div className="p-4 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Buscar por nome, CPF ou especialidade..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              {searchTerm && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setFilteredMecanicos(mecanicos);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>CPF</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Especialidade</TableHead>
-                  <TableHead>Data Contratação</TableHead>
-                  <TableHead>Status</TableHead>
-                  {isAdmin && <TableHead className="text-right">Ações</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMecanicos.length > 0 ? (
-                  filteredMecanicos.map((mecanico) => (
-                    <TableRow key={mecanico.id}>
-                      <TableCell className="font-medium">{mecanico.nome}</TableCell>
-                      <TableCell>{mecanico.cpf}</TableCell>
-                      <TableCell>{mecanico.telefone}</TableCell>
-                      <TableCell>{mecanico.especialidade}</TableCell>
-                      <TableCell>{formatarData(mecanico.dataContratacao)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            mecanico.status === "ativo"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {mecanico.status === "ativo" ? "Ativo" : "Inativo"}
-                        </span>
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenDialog(mecanico)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDelete(mecanico.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center py-6">
-                      Nenhum mecânico encontrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <RefreshCw className="animate-spin h-8 w-8 mx-auto text-primary" />
+            <p className="mt-2">Carregando mecânicos...</p>
+          </div>
+        </div>
+      ) : filteredMecanicos.length === 0 ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-muted-foreground">
+              {searchTerm ? "Nenhum mecânico encontrado com esse termo." : "Nenhum mecânico cadastrado. Clique em 'Novo Mecânico' para começar."}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMecanicos.map((mecanico) => (
+            <Card key={mecanico.id} className="shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex justify-between items-center">
+                  <span>{mecanico.nome}</span>
+                  <div className="flex space-x-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => openEditMecanico(mecanico)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDelete(mecanico.id, mecanico.nome)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  Especialidade: {mecanico.especialidade}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="space-y-1 text-sm">
+                  <div><strong>E-mail:</strong> {mecanico.email}</div>
+                  <div><strong>Telefone:</strong> {mecanico.telefone}</div>
+                  {mecanico.observacoes && (
+                    <div className="mt-2">
+                      <strong>Observações:</strong>
+                      <p className="text-muted-foreground mt-1">{mecanico.observacoes}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="pt-2 text-xs text-muted-foreground">
+                Cadastrado em: {new Date(mecanico.createdAt).toLocaleDateString()}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
             <DialogTitle>
-              {mecanicoEmEdicao ? "Editar Mecânico" : "Adicionar Mecânico"}
+              {editingMecanico ? "Editar Mecânico" : "Novo Mecânico"}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do mecânico abaixo.
+              {editingMecanico 
+                ? "Atualize as informações do mecânico abaixo." 
+                : "Preencha os dados para cadastrar um novo mecânico."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome</Label>
+                <Label htmlFor="nome">Nome Completo</Label>
                 <Input
                   id="nome"
                   name="nome"
@@ -317,13 +245,13 @@ const Mecanicos = () => {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="cpf">CPF</Label>
+                  <Label htmlFor="especialidade">Especialidade</Label>
                   <Input
-                    id="cpf"
-                    name="cpf"
-                    value={formData.cpf}
+                    id="especialidade"
+                    name="especialidade"
+                    value={formData.especialidade}
                     onChange={handleInputChange}
                     required
                   />
@@ -340,57 +268,39 @@ const Mecanicos = () => {
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="especialidade">Especialidade</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
-                  id="especialidade"
-                  name="especialidade"
-                  value={formData.especialidade}
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
                   onChange={handleInputChange}
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="dataContratacao">Data de Contratação</Label>
-                  <Input
-                    id="dataContratacao"
-                    name="dataContratacao"
-                    type="date"
-                    value={formData.dataContratacao}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="status">Status</Label>
-                  <select
-                    id="status"
-                    name="status"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={formData.status}
-                    onChange={(e) => 
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        status: e.target.value as "ativo" | "inativo" 
-                      }))
-                    }
-                  >
-                    <option value="ativo">Ativo</option>
-                    <option value="inativo">Inativo</option>
-                  </select>
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="observacoes">Observações</Label>
+                <Textarea
+                  id="observacoes"
+                  name="observacoes"
+                  value={formData.observacoes}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="submit">
+                {editingMecanico ? "Atualizar" : "Cadastrar"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </div>
   );
 };
 

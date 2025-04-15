@@ -3,7 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { setupSyncListener } from "@/services/syncService";
+
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -11,31 +15,92 @@ import Mecanicos from "./pages/Mecanicos";
 import Servicos from "./pages/Servicos";
 import Vales from "./pages/Vales";
 import Relatorios from "./pages/Relatorios";
-import { AuthProvider } from "./contexts/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import { AppLayout } from "./components/AppLayout";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/mecanicos" element={<PrivateRoute><Mecanicos /></PrivateRoute>} />
-            <Route path="/servicos" element={<PrivateRoute><Servicos /></PrivateRoute>} />
-            <Route path="/vales" element={<PrivateRoute><Vales /></PrivateRoute>} />
-            <Route path="/relatorios" element={<PrivateRoute><Relatorios /></PrivateRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Configurar o ouvinte de sincronização quando a aplicação iniciar
+  useEffect(() => {
+    const cleanupListener = setupSyncListener();
+    return cleanupListener;
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Sonner position="top-right" expand={true} closeButton={true} />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/inicio" element={<Navigate to="/dashboard" replace />} />
+                
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Dashboard />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/mecanicos" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Mecanicos />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/servicos" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Servicos />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/vales" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Vales />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/relatorios" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <Relatorios />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
