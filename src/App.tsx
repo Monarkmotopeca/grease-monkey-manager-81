@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { setupSyncListener } from "@/services/syncService";
+import { LockScreen } from "@/components/LockScreen";
 
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => {
         <TooltipProvider>
           <AuthProvider>
             <Sonner position="top-right" expand={true} closeButton={true} />
+            <LockScreen />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Login />} />

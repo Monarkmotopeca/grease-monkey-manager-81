@@ -290,3 +290,31 @@ export const clearPendingOperations = async (): Promise<void> => {
     };
   });
 };
+
+// Remove permanentemente um item da base de dados (sem rastrear para sincronização)
+export const removePermanently = async (
+  store: 'mecanico' | 'servico' | 'vale',
+  id: string
+): Promise<void> => {
+  const storeName = store === 'mecanico' 
+    ? STORES.MECANICOS 
+    : store === 'servico' 
+      ? STORES.SERVICOS 
+      : STORES.VALES;
+      
+  const db = await initDB();
+  
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readwrite');
+    const objectStore = transaction.objectStore(storeName);
+    const request = objectStore.delete(id);
+    
+    request.onsuccess = () => {
+      resolve();
+    };
+    
+    request.onerror = () => {
+      reject(new Error(`Falha ao remover permanentemente ${store} com ID ${id}`));
+    };
+  });
+};

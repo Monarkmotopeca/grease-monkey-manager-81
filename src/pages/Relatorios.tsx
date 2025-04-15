@@ -11,6 +11,12 @@ import { Calendar, Download, FileText, Filter, Users, Wrench } from "lucide-reac
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  exportarRelatorioCompleto,
+  exportarRelatorioServicos,
+  exportarRelatorioMecanicos,
+  exportarRelatorioVales
+} from "@/services/exportService";
 
 // Mock de dados para os relatórios
 const mockServicosData = [
@@ -56,13 +62,35 @@ const Relatorios = () => {
   const [anoSelecionado, setAnoSelecionado] = useState("2025");
 
   const handleExportarRelatorioPDF = () => {
-    toast.success("Relatório exportado como PDF!");
-    // Em um sistema real, aqui seria implementada a geração do PDF
+    try {
+      exportarRelatorioCompleto(
+        mockServicosData,
+        mockMecanicoData,
+        mockValesData,
+        mockTipoServicosData,
+        'pdf'
+      );
+      toast.success("Relatório exportado como PDF!");
+    } catch (error) {
+      console.error("Erro ao exportar relatório:", error);
+      toast.error("Erro ao exportar relatório. Tente novamente.");
+    }
   };
 
   const handleExportarRelatorioExcel = () => {
-    toast.success("Relatório exportado como Excel!");
-    // Em um sistema real, aqui seria implementada a geração do Excel
+    try {
+      exportarRelatorioCompleto(
+        mockServicosData,
+        mockMecanicoData,
+        mockValesData,
+        mockTipoServicosData,
+        'excel'
+      );
+      toast.success("Relatório exportado como Excel!");
+    } catch (error) {
+      console.error("Erro ao exportar relatório:", error);
+      toast.error("Erro ao exportar relatório. Tente novamente.");
+    }
   };
 
   const formatarValor = (valor: number) => {

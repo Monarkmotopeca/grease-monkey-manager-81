@@ -78,7 +78,15 @@ const UserManagement = () => {
   // Adiciona um novo usuário
   const handleAddUser = async (data: UserFormValues) => {
     try {
-      await addUser(data);
+      // Certificando-se de que todos os campos requeridos estão presentes
+      const userData = {
+        nome: data.nome,
+        email: data.email,
+        password: data.password,
+        perfil: data.perfil
+      };
+      
+      await addUser(userData);
       toast.success("Usuário criado com sucesso!");
       setIsAddDialogOpen(false);
       userForm.reset();

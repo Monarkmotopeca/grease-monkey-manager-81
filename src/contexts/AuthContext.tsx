@@ -24,6 +24,8 @@ type AuthContextType = {
   addUser: (user: Omit<UserWithPassword, "id">) => Promise<User>;
   removeUser: (id: string) => Promise<void>;
   updateUserPassword: (id: string, newPassword: string) => Promise<void>;
+  verifyPassword: (userId: string, password: string) => Promise<boolean>;
+  users: UserWithPassword[]; // Expondo a lista de usuários para o LockScreen
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,22 +89,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setLoading(false);
     
-    // Configurar temporizador de inatividade (90 minutos)
+    // Configurar temporizador de inatividade (1 minuto e 30 segundos)
     let inactivityTimeout: number;
     
     const resetTimer = () => {
       clearTimeout(inactivityTimeout);
       inactivityTimeout = window.setTimeout(() => {
         if (user) {
-          logout();
-          toast.warning("Sessão encerrada por inatividade");
+          // Não faz logout completo, apenas bloqueia a sessão
+          document.dispatchEvent(new CustomEvent('system-lock', { detail: { userId: user.id } }));
+          toast.warning("Sistema bloqueado por inatividade. Digite a senha para continuar.");
         }
-      }, 90 * 60 * 1000); // 90 minutos
+      }, 90 * 1000); // 1 minuto e 30 segundos
     };
     
     // Eventos para resetar o temporizador
     window.addEventListener("mousemove", resetTimer);
     window.addEventListener("keypress", resetTimer);
+    window.addEventListener("click", resetTimer);
+    
+    // Listener para eventos de desbloqueio do sistema
+    const handleUnlock = (event: CustomEvent<{ success: boolean }>) => {
+      if (event.detail.success) {
+        resetTimer();
+        toast.success("Sistema desbloqueado com sucesso!");
+      }
+    };
+    
+    document.addEventListener('system-unlock' as any, handleUnlock as EventListener);
     
     resetTimer();
     
@@ -110,6 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(inactivityTimeout);
       window.removeEventListener("mousemove", resetTimer);
       window.removeEventListener("keypress", resetTimer);
+      window.removeEventListener("click", resetTimer);
+      document.removeEventListener('system-unlock' as any, handleUnlock as EventListener);
     };
   }, [user]);
   
@@ -219,6 +235,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("oficina_user");
   };
   
+  // Verifica a senha de um usuário específico
+  const verifyPassword = async (userId: string, password: string): Promise<boolean> => {
+    const userToVerify = users.find(u => u.id === userId);
+    if (!userToVerify) return false;
+    
+    return userToVerify.password === password;
+  };
+  
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -229,7 +253,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getUserList, 
       addUser, 
       removeUser, 
-      updateUserPassword 
+      updateUserPassword,
+      verifyPassword,
+      users // Expondo a lista de usuários para o LockScreen
     }}>
       {children}
     </AuthContext.Provider>

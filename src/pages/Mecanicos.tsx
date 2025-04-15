@@ -91,10 +91,16 @@ const Mecanicos = () => {
   };
 
   const handleDelete = async (id: string, nome: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir o mecânico ${nome}?`)) {
+    const confirmMessage = "Escolha como deseja excluir o mecânico:\n\n" +
+      "• Clique em OK para excluir permanentemente (será removido do banco de dados)\n" +
+      "• Clique em Cancelar para excluir temporariamente (será marcado como excluído mas poderá ser recuperado)";
+    
+    const permanent = window.confirm(confirmMessage);
+    
+    if (window.confirm(`Tem certeza que deseja ${permanent ? 'EXCLUIR PERMANENTEMENTE' : 'excluir'} o mecânico ${nome}?`)) {
       try {
-        await deleteItem(id);
-        toast.success("Mecânico excluído com sucesso!");
+        await deleteItem(id, permanent);
+        toast.success(`Mecânico ${permanent ? 'excluído permanentemente' : 'excluído'} com sucesso!`);
       } catch (error) {
         console.error("Erro ao excluir mecânico:", error);
         toast.error("Ocorreu um erro ao excluir o mecânico");
