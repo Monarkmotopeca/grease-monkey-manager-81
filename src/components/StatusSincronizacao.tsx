@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { countPendingOperations } from "@/services/offlineStorage";
 import { synchronizeData } from "@/services/syncService";
 import { toast } from "sonner";
-import { CloudOff, CloudCheck, RefreshCw, Clock } from "lucide-react";
+import { CloudOff, CloudUpload, RefreshCw, Clock, CheckCircle } from "lucide-react";
 
 export const StatusSincronizacao = () => {
   const [pendingCount, setPendingCount] = useState(0);
@@ -125,7 +125,7 @@ export const StatusSincronizacao = () => {
             </>
           ) : (
             <>
-              <CloudCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               <span>Tudo Sincronizado</span>
             </>
           )}

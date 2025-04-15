@@ -4,6 +4,13 @@ import { toast } from "sonner";
 import * as offlineStorage from "@/services/offlineStorage";
 import { synchronizeData } from "@/services/syncService";
 
+// Interface para o resultado da sincronização
+interface SyncResult {
+  success: boolean;
+  processed?: number;
+  failed?: number;
+}
+
 // Hook genérico para lidar com qualquer tipo de entidade offline
 export function useOfflineData<T extends { id: string }>(entityType: 'mecanico' | 'servico' | 'vale') {
   const [data, setData] = useState<T[]>([]);
@@ -100,7 +107,7 @@ export function useOfflineData<T extends { id: string }>(entityType: 'mecanico' 
   }, [entityType]);
 
   // Forçar sincronização manual
-  const syncData = useCallback(async () => {
+  const syncData = useCallback(async (): Promise<SyncResult> => {
     if (!navigator.onLine) {
       toast.error("Você está offline. Não é possível sincronizar.");
       return { success: false };

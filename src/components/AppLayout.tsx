@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ModeToggle";
 import { 
   Car, Home, Users, Wrench, Receipt, BarChart3, 
-  LogOut, CloudOff, CloudCheck, AlertCircle 
+  LogOut, CloudOff, CheckCircle, AlertCircle, CloudUpload 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -160,7 +160,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 <SidebarGroupLabel>Sincronização</SidebarGroupLabel>
                 <SidebarGroupContent className="px-2">
                   <div className="flex items-center space-x-2 rounded-md bg-blue-100 dark:bg-blue-900/20 p-3 text-blue-800 dark:text-blue-200">
-                    <CloudCheck className="h-5 w-5" />
+                    <CloudUpload className="h-5 w-5" />
                     <span className="text-sm">Sincronizando dados</span>
                     <Badge variant="outline" className="ml-auto">
                       {pendingUploads} pendentes
@@ -212,12 +212,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 </Badge>
               ) : pendingUploads > 0 ? (
                 <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
-                  <CloudCheck className="mr-1 h-3 w-3" />
+                  <CloudUpload className="mr-1 h-3 w-3" />
                   Sincronizando
                 </Badge>
               ) : (
                 <Badge variant="outline" className="bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
-                  <CloudCheck className="mr-1 h-3 w-3" />
+                  <CheckCircle className="mr-1 h-3 w-3" />
                   Online
                 </Badge>
               )}

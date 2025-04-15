@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CloudOff, CloudCheck, Plus, RefreshCw, Edit, Trash2, Search } from "lucide-react";
+import { CloudOff, CheckCircle, Plus, RefreshCw, Edit, Trash2, Search, CloudUpload } from "lucide-react";
 
 interface Mecanico {
   id: string;
@@ -109,9 +109,9 @@ const Mecanicos = () => {
     }
     
     const result = await syncData();
-    if (result.success) {
+    if (result.success && result.processed !== undefined) {
       toast.success(`Sincronização concluída! ${result.processed} alterações enviadas.`);
-    } else if (result.processed > 0) {
+    } else if (result.processed !== undefined && result.processed > 0 && result.failed !== undefined) {
       toast.warning(`Sincronização parcial: ${result.failed} alterações não sincronizadas.`);
     } else {
       toast.error("Falha na sincronização. Tente novamente mais tarde.");
@@ -130,7 +130,7 @@ const Mecanicos = () => {
           )}
           {isOnline && pendingCount > 0 && (
             <div className="rounded-full bg-blue-100 dark:bg-blue-900/20 p-1 text-blue-800 dark:text-blue-200">
-              <CloudCheck className="h-5 w-5" />
+              <CloudUpload className="h-5 w-5" />
             </div>
           )}
         </div>
