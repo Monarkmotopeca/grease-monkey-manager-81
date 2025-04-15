@@ -1,14 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-[400px] shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">
+            Sistema de Gestão de Oficina
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-center text-muted-foreground">
+            Bem-vindo ao seu sistema de gerenciamento
+          </p>
+          <div className="flex justify-center">
+            <Button>Iniciar</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  );
-};
+  )
+}
 
-export default Index;
+export default Index
