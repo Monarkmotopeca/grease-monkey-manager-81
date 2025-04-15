@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
+import * as offlineStorage from "@/services/offlineStorage";
 
 type User = {
   id: string;
@@ -9,12 +10,20 @@ type User = {
   perfil: "admin" | "usuario" | "mecanico";
 };
 
+type UserWithPassword = User & {
+  password: string;
+};
+
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  getUserList: () => Promise<User[]>;
+  addUser: (user: Omit<UserWithPassword, "id">) => Promise<User>;
+  removeUser: (id: string) => Promise<void>;
+  updateUserPassword: (id: string, newPassword: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,8 +36,9 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock de usuários para testar o sistema
-const MOCK_USERS = [
+// Mock de usuários para testar o sistema - será armazenado no localStorage
+const LOCAL_STORAGE_USERS_KEY = "oficina_users";
+const DEFAULT_USERS = [
   {
     id: "1",
     nome: "Administrador",
@@ -55,6 +65,19 @@ const MOCK_USERS = [
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<UserWithPassword[]>([]);
+  
+  // Inicializa os usuários a partir do localStorage
+  useEffect(() => {
+    const storedUsers = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    } else {
+      // Se não existir, inicializa com os usuários padrão
+      localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(DEFAULT_USERS));
+      setUsers(DEFAULT_USERS);
+    }
+  }, []);
   
   // Verificar autenticação ao iniciar
   useEffect(() => {
@@ -90,11 +113,94 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user]);
   
+  // Obtém a lista de usuários (sem as senhas)
+  const getUserList = async (): Promise<User[]> => {
+    // Aguarda um pouco para simular requisição de rede
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+  };
+
+  // Adiciona um novo usuário
+  const addUser = async (userData: Omit<UserWithPassword, "id">): Promise<User> => {
+    // Verificar se já existe usuário com o mesmo email
+    const existingUser = users.find(u => u.email === userData.email);
+    if (existingUser) {
+      toast.error("Já existe um usuário com este email");
+      throw new Error("Email já em uso");
+    }
+    
+    // Cria um novo ID para o usuário (simulando um banco de dados)
+    const newUser = {
+      ...userData,
+      id: Date.now().toString(),
+    };
+    
+    // Atualiza a lista de usuários
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
+    
+    // Retorna o usuário sem a senha
+    const { password, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
+  };
+
+  // Remove um usuário
+  const removeUser = async (id: string): Promise<void> => {
+    // Não permite remover o próprio usuário logado
+    if (user?.id === id) {
+      toast.error("Você não pode remover sua própria conta");
+      throw new Error("Não é possível remover o usuário logado");
+    }
+    
+    // Encontra o usuário
+    const userToRemove = users.find(u => u.id === id);
+    if (!userToRemove) {
+      toast.error("Usuário não encontrado");
+      throw new Error("Usuário não encontrado");
+    }
+    
+    // Não permite remover o último administrador
+    if (userToRemove.perfil === "admin") {
+      const adminCount = users.filter(u => u.perfil === "admin").length;
+      if (adminCount <= 1) {
+        toast.error("Não é possível remover o último administrador");
+        throw new Error("Não é possível remover o último administrador");
+      }
+    }
+    
+    // Atualiza a lista de usuários
+    const updatedUsers = users.filter(u => u.id !== id);
+    setUsers(updatedUsers);
+    localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
+  };
+
+  // Atualiza a senha de um usuário
+  const updateUserPassword = async (id: string, newPassword: string): Promise<void> => {
+    // Encontra o usuário
+    const userIndex = users.findIndex(u => u.id === id);
+    if (userIndex === -1) {
+      toast.error("Usuário não encontrado");
+      throw new Error("Usuário não encontrado");
+    }
+    
+    // Atualiza a senha
+    const updatedUsers = [...users];
+    updatedUsers[userIndex] = {
+      ...updatedUsers[userIndex],
+      password: newPassword,
+    };
+    
+    setUsers(updatedUsers);
+    localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(updatedUsers));
+  };
+  
   const login = async (email: string, password: string): Promise<boolean> => {
     // Simulação de delay de rede
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    const foundUser = MOCK_USERS.find(
+    const foundUser = users.find(
       u => u.email === email && u.password === password
     );
     
@@ -114,7 +220,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated: !!user, 
+      login, 
+      logout, 
+      loading, 
+      getUserList, 
+      addUser, 
+      removeUser, 
+      updateUserPassword 
+    }}>
       {children}
     </AuthContext.Provider>
   );

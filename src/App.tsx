@@ -15,6 +15,7 @@ import Mecanicos from "./pages/Mecanicos";
 import Servicos from "./pages/Servicos";
 import Vales from "./pages/Vales";
 import Relatorios from "./pages/Relatorios";
+import UserManagement from "./pages/UserManagement";
 import PrivateRoute from "./components/PrivateRoute";
 import { AppLayout } from "./components/AppLayout";
 
@@ -88,6 +89,17 @@ const App = () => {
                     <PrivateRoute>
                       <AppLayout>
                         <Relatorios />
+                      </AppLayout>
+                    </PrivateRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/usuarios" 
+                  element={
+                    <PrivateRoute>
+                      <AppLayout>
+                        <UserManagement />
                       </AppLayout>
                     </PrivateRoute>
                   } 

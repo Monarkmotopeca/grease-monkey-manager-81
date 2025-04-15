@@ -70,10 +70,24 @@ export function useOfflineData<T extends { id: string }>(entityType: 'mecanico' 
     }
   }, [entityType]);
 
-  // Excluir uma entidade
-  const deleteItem = useCallback(async (id: string): Promise<void> => {
+  // Excluir uma entidade permanentemente
+  const deleteItem = useCallback(async (id: string, permanent: boolean = false): Promise<void> => {
     try {
-      await offlineStorage.removeLocally(entityType, id);
+      if (permanent) {
+        // Remoção permanente - remove do banco de dados sem rastreamento offline
+        await offlineStorage.removePermanently(entityType, id);
+        toast.success(`${entityType === 'mecanico' ? 'Mecânico' : entityType === 'servico' ? 'Serviço' : 'Vale'} removido permanentemente.`);
+      } else {
+        // Remoção com rastreamento para sincronização
+        await offlineStorage.removeLocally(entityType, id);
+        
+        // Tenta sincronizar se estiver online
+        if (navigator.onLine) {
+          synchronizeData();
+        } else {
+          toast.info(`Exclusão salva offline e será sincronizada quando a conexão for restabelecida.`);
+        }
+      }
       
       // Atualiza o estado local
       setData(prev => prev.filter(item => item.id !== id));
@@ -81,13 +95,6 @@ export function useOfflineData<T extends { id: string }>(entityType: 'mecanico' 
       // Conta as operações pendentes
       const count = await offlineStorage.countPendingOperations();
       setPendingCount(count);
-      
-      // Tenta sincronizar se estiver online
-      if (navigator.onLine) {
-        synchronizeData();
-      } else {
-        toast.info(`Exclusão salva offline e será sincronizada quando a conexão for restabelecida.`);
-      }
     } catch (error) {
       console.error(`Erro ao excluir ${entityType}:`, error);
       toast.error(`Não foi possível excluir o ${entityType}`);

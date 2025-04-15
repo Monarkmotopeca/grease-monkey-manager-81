@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
   Home, Users, Wrench, Receipt, BarChart, Menu, LogOut, 
-  ChevronLeft, User 
+  ChevronLeft, User, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const menuItems: MenuItem[] = [
   { name: "Serviços", path: "/servicos", icon: Wrench, roles: ["admin", "usuario", "mecanico"] },
   { name: "Vales", path: "/vales", icon: Receipt, roles: ["admin", "usuario"] },
   { name: "Relatórios", path: "/relatorios", icon: BarChart, roles: ["admin"] },
+  { name: "Usuários", path: "/usuarios", icon: Settings, roles: ["admin"] },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
