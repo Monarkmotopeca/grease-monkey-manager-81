@@ -1,0 +1,34 @@
+
+=====================================================
+   SISTEMA DE GESTÃO DE OFICINA - INSTRUÇÕES
+=====================================================
+
+REQUISITOS MÍNIMOS:
+- Python 3.6 ou superior (https://www.python.org/downloads/)
+- Node.js 14 ou superior (https://nodejs.org/)
+- Navegador web moderno (Chrome, Firefox, Edge)
+
+COMO EXECUTAR O SISTEMA:
+
+1. MÉTODO FÁCIL - EXECUTÁVEL:
+   - Simplesmente clique duas vezes no arquivo "sistema_oficina.exe" (se disponível)
+   
+2. MÉTODO ALTERNATIVO - PYTHON:
+   - Clique duas vezes no arquivo "start_sistema.py"
+   OU
+   - Abra o terminal/prompt de comando na pasta do sistema
+   - Execute o comando: python start_sistema.py
+
+OBSERVAÇÕES IMPORTANTES:
+- Na primeira execução, o sistema irá instalar todas as dependências necessárias
+- Isso pode levar alguns minutos dependendo da velocidade da sua internet
+- O sistema abrirá automaticamente em seu navegador padrão
+- Para encerrar o sistema, feche a janela do terminal/prompt de comando
+
+SUPORTE:
+Em caso de problemas, verifique:
+1. Se Python está instalado corretamente (comando: python --version)
+2. Se Node.js está instalado corretamente (comando: node --version)
+3. Se você tem permissões de administrador para instalar pacotes
+
+=====================================================

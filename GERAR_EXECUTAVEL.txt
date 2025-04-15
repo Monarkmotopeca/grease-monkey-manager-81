@@ -1,0 +1,35 @@
+
+=====================================================
+   INSTRUÇÕES PARA GERAR O EXECUTÁVEL
+=====================================================
+
+Para criar um arquivo executável (.exe no Windows) do sistema, siga os passos abaixo:
+
+1. INSTALE O PYTHON:
+   - Download: https://www.python.org/downloads/
+   - Durante a instalação, marque a opção "Add Python to PATH"
+
+2. INSTALE O PYINSTALLER:
+   - Abra o terminal/prompt de comando
+   - Execute: pip install pyinstaller
+
+3. GERE O EXECUTÁVEL:
+   - Abra o terminal/prompt de comando na pasta do sistema
+   - Execute: python build_exe.py
+   - Aguarde o processo ser concluído (pode levar alguns minutos)
+
+4. ENCONTRE O EXECUTÁVEL:
+   - O arquivo executável será criado na pasta "dist"
+   - Nome do arquivo: "sistema_oficina.exe" (Windows) ou "sistema_oficina" (Mac/Linux)
+
+5. DISTRIBUA O SISTEMA:
+   - Copie o executável para o computador desejado
+   - Certifique-se de que Node.js está instalado no computador de destino
+   - Execute o arquivo normalmente com dois cliques
+
+OBSERVAÇÕES:
+- O executável ainda precisa que o Node.js esteja instalado no computador
+- A primeira execução pode ser mais lenta devido à instalação de dependências
+- O tamanho do executável pode ser grande (50-100MB) devido às bibliotecas incluídas
+
+=====================================================
