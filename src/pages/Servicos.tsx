@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2, Search, X, Filter } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, Search, X, Filter, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Tipos para serviços
 type StatusServico = "em_andamento" | "concluido" | "cancelado";
@@ -20,11 +21,13 @@ type Servico = {
   id: string;
   data: string;
   cliente: string;
+  telefone: string; // Novo campo de telefone
   veiculo: string;
   descricao: string;
   mecanicoId: string;
   mecanicoNome: string;
   valor: number;
+  comissao: number; // Novo campo de comissão (em percentual)
   status: StatusServico;
 };
 
@@ -37,61 +40,80 @@ const mockMecanicos = [
   { id: "5", nome: "Paulo Costa" },
 ];
 
+// Opções de comissão
+const opcoesComissao = [
+  { valor: 100, label: "100%" },
+  { valor: 80, label: "80%" },
+  { valor: 50, label: "50%" },
+  { valor: 30, label: "30%" },
+  { valor: 0, label: "0%" },
+];
+
 // Mock de serviços
 const mockServicos: Servico[] = [
   {
     id: "1",
     data: "2025-06-01",
     cliente: "João Silva",
+    telefone: "69993059302", // Adicionado telefone
     veiculo: "Ford Ka 2018",
     descricao: "Troca de óleo e filtros",
     mecanicoId: "1",
     mecanicoNome: "Carlos Pereira",
     valor: 250.0,
+    comissao: 50, // Adicionado comissão
     status: "em_andamento",
   },
   {
     id: "2",
     data: "2025-05-29",
     cliente: "Maria Santos",
+    telefone: "69993059302",
     veiculo: "Honda Fit 2020",
     descricao: "Revisão completa",
     mecanicoId: "2",
     mecanicoNome: "Roberto Silva",
     valor: 450.0,
+    comissao: 80,
     status: "em_andamento",
   },
   {
     id: "3",
     data: "2025-05-28",
     cliente: "Pedro Oliveira",
+    telefone: "69993059302",
     veiculo: "Fiat Uno 2015",
     descricao: "Troca de pastilhas de freio",
     mecanicoId: "3",
     mecanicoNome: "Antônio Santos",
     valor: 180.0,
+    comissao: 100,
     status: "concluido",
   },
   {
     id: "4",
     data: "2025-05-27",
     cliente: "Ana Rodrigues",
+    telefone: "69993059302",
     veiculo: "Toyota Corolla 2021",
     descricao: "Alinhamento e balanceamento",
     mecanicoId: "4",
     mecanicoNome: "José Oliveira",
     valor: 200.0,
+    comissao: 80,
     status: "concluido",
   },
   {
     id: "5",
     data: "2025-05-26",
     cliente: "Carlos Mendes",
+    telefone: "69993059302",
     veiculo: "Volkswagen Gol 2019",
     descricao: "Reparo no sistema elétrico",
     mecanicoId: "5",
     mecanicoNome: "Paulo Costa",
     valor: 320.0,
+    comissao: 50,
     status: "cancelado",
   },
 ];
@@ -106,10 +128,12 @@ const Servicos = () => {
   const [formData, setFormData] = useState<Omit<Servico, "id" | "mecanicoNome">>({
     data: new Date().toISOString().split("T")[0],
     cliente: "",
+    telefone: "", // Adicionado telefone
     veiculo: "",
     descricao: "",
     mecanicoId: "",
     valor: 0,
+    comissao: 100, // Valor default = 100%
     status: "em_andamento",
   });
 
@@ -131,6 +155,7 @@ const Servicos = () => {
       filtered = filtered.filter(
         servico =>
           servico.cliente.toLowerCase().includes(term.toLowerCase()) ||
+          servico.telefone.toLowerCase().includes(term.toLowerCase()) ||
           servico.veiculo.toLowerCase().includes(term.toLowerCase()) ||
           servico.descricao.toLowerCase().includes(term.toLowerCase()) ||
           servico.mecanicoNome.toLowerCase().includes(term.toLowerCase())
@@ -163,14 +188,20 @@ const Servicos = () => {
     }
   };
 
+  const handleComissaoChange = (value: string) => {
+    setFormData(prev => ({ ...prev, comissao: parseInt(value) }));
+  };
+
   const resetForm = () => {
     setFormData({
       data: new Date().toISOString().split("T")[0],
       cliente: "",
+      telefone: "",
       veiculo: "",
       descricao: "",
       mecanicoId: "",
       valor: 0,
+      comissao: 100,
       status: "em_andamento",
     });
     setServicoEmEdicao(null);
@@ -182,10 +213,12 @@ const Servicos = () => {
       setFormData({
         data: servico.data,
         cliente: servico.cliente,
+        telefone: servico.telefone,
         veiculo: servico.veiculo,
         descricao: servico.descricao,
         mecanicoId: servico.mecanicoId,
         valor: servico.valor,
+        comissao: servico.comissao,
         status: servico.status,
       });
     } else {
@@ -266,6 +299,19 @@ const Servicos = () => {
     }
   };
 
+  const handleThankCustomer = (telefone: string) => {
+    // Mensagem personalizada para o WhatsApp
+    const mensagem = "Olá!%20A%20Monark%20Motos%20e%20Bicicletaria%20agradece%20sua%20preferência.%20Seu%20serviço%20foi%20realizado%20com%20dedicação%20e%20qualidade.%20Em%20caso%20de%20problemas%20com%20o%20serviço%20ou%20peça,%20guarde%20o%20comprovante%20e%20entre%20em%20contato%20com%20o%20mecânico%20responsável.%20Estamos%20à%20disposição%20para%20garantir%20sua%20satisfação.";
+    
+    // Formatar o telefone para usar no WhatsApp
+    const numeroFormatado = telefone.replace(/\D/g, ""); // Remove caracteres não numéricos
+    const whatsappLink = `https://wa.me/55${numeroFormatado}?text=${mensagem}`;
+    
+    // Abrir o link do WhatsApp em uma nova aba
+    window.open(whatsappLink, "_blank");
+    toast.success("WhatsApp aberto para agradecimento");
+  };
+
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR');
@@ -331,6 +377,7 @@ const Servicos = () => {
               onEdit={handleOpenDialog}
               onDelete={handleDelete}
               onChangeStatus={handleChangeStatus}
+              onThankCustomer={handleThankCustomer}
               formatarData={formatarData}
               formatarValor={formatarValor}
             />
@@ -343,6 +390,7 @@ const Servicos = () => {
               onEdit={handleOpenDialog}
               onDelete={handleDelete}
               onChangeStatus={handleChangeStatus}
+              onThankCustomer={handleThankCustomer}
               formatarData={formatarData}
               formatarValor={formatarValor}
             />
@@ -355,6 +403,7 @@ const Servicos = () => {
               onEdit={handleOpenDialog}
               onDelete={handleDelete}
               onChangeStatus={handleChangeStatus}
+              onThankCustomer={handleThankCustomer}
               formatarData={formatarData}
               formatarValor={formatarValor}
             />
@@ -367,6 +416,7 @@ const Servicos = () => {
               onEdit={handleOpenDialog}
               onDelete={handleDelete}
               onChangeStatus={handleChangeStatus}
+              onThankCustomer={handleThankCustomer}
               formatarData={formatarData}
               formatarValor={formatarValor}
             />
@@ -417,15 +467,28 @@ const Servicos = () => {
                   </select>
                 </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cliente">Cliente</Label>
-                <Input
-                  id="cliente"
-                  name="cliente"
-                  value={formData.cliente}
-                  onChange={handleInputChange}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="cliente">Cliente</Label>
+                  <Input
+                    id="cliente"
+                    name="cliente"
+                    value={formData.cliente}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="telefone">Telefone</Label>
+                  <Input
+                    id="telefone"
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleInputChange}
+                    placeholder="Ex: 69993059302"
+                    required
+                  />
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="veiculo">Veículo</Label>
@@ -449,7 +512,7 @@ const Servicos = () => {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="valor">Valor (R$)</Label>
                   <Input
@@ -462,6 +525,24 @@ const Servicos = () => {
                     onChange={handleInputChange}
                     required
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="comissao">Comissão</Label>
+                  <Select 
+                    value={formData.comissao.toString()} 
+                    onValueChange={handleComissaoChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {opcoesComissao.map((opcao) => (
+                        <SelectItem key={opcao.valor} value={opcao.valor.toString()}>
+                          {opcao.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="status">Status</Label>
@@ -499,6 +580,7 @@ interface ServicosTableProps {
   onEdit: (servico: Servico) => void;
   onDelete: (id: string) => void;
   onChangeStatus: (id: string, status: StatusServico) => void;
+  onThankCustomer: (telefone: string) => void;
   formatarData: (data: string) => string;
   formatarValor: (valor: number) => string;
 }
@@ -509,6 +591,7 @@ const ServicosTable = ({
   onEdit,
   onDelete,
   onChangeStatus,
+  onThankCustomer,
   formatarData,
   formatarValor,
 }: ServicosTableProps) => {
@@ -524,6 +607,7 @@ const ServicosTable = ({
               <TableHead>Descrição</TableHead>
               <TableHead>Mecânico</TableHead>
               <TableHead>Valor</TableHead>
+              <TableHead>Comissão</TableHead>
               <TableHead>Status</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
@@ -533,7 +617,16 @@ const ServicosTable = ({
               servicos.map((servico) => (
                 <TableRow key={servico.id}>
                   <TableCell>{formatarData(servico.data)}</TableCell>
-                  <TableCell className="font-medium">{servico.cliente}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>
+                      {servico.cliente}
+                      {servico.telefone && (
+                        <div className="text-xs text-muted-foreground">
+                          Tel: {servico.telefone}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>{servico.veiculo}</TableCell>
                   <TableCell>
                     <div className="max-w-[200px] truncate" title={servico.descricao}>
@@ -542,6 +635,7 @@ const ServicosTable = ({
                   </TableCell>
                   <TableCell>{servico.mecanicoNome}</TableCell>
                   <TableCell>{formatarValor(servico.valor)}</TableCell>
+                  <TableCell>{servico.comissao}%</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
@@ -572,6 +666,17 @@ const ServicosTable = ({
                             Concluir
                           </Button>
                         )}
+                        {servico.status === "concluido" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2 text-blue-600"
+                            onClick={() => onThankCustomer(servico.telefone)}
+                            title="Agradecer ao cliente"
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -594,7 +699,7 @@ const ServicosTable = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={isAdmin ? 8 : 7} className="text-center py-6">
+                <TableCell colSpan={isAdmin ? 9 : 8} className="text-center py-6">
                   Nenhum serviço encontrado.
                 </TableCell>
               </TableRow>

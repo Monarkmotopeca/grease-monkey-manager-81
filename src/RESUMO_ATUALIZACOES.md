@@ -37,6 +37,18 @@
    - Ao excluir, o usuário pode escolher entre exclusão temporária ou permanente
    - Exclusão permanente remove completamente o registro do banco de dados sem possibilidade de recuperação
 
+## Gestão de Serviços Avançada
+
+1. **Cadastro de Serviços Aprimorado**
+   - Adicionado campo de telefone do cliente
+   - Implementado sistema de comissão com opções de percentual (100%, 80%, 50%, 30%, 0%)
+   - Interface aprimorada para melhor visualização dos detalhes de serviço
+
+2. **Integração com WhatsApp**
+   - Botão para agradecer o cliente via WhatsApp após conclusão do serviço
+   - Mensagem personalizada enviada automaticamente
+   - Utiliza o número de telefone cadastrado no serviço
+
 ## Bancos de Dados
 
 1. **Armazenamento Local**

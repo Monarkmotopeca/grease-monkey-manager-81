@@ -1,4 +1,3 @@
-
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -70,37 +69,43 @@ export const exportToPDF = (
     return Object.values(linha);
   });
   
-  // Adiciona a tabela
-  (doc as any).autoTable({
-    head: [colunas.map(coluna => coluna.header)],
-    body: tabelaDados,
-    startY: 35,
-    theme: 'grid',
-    styles: {
-      font: 'helvetica',
-      fontSize: 8
-    },
-    headStyles: {
-      fillColor: [66, 66, 66],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold'
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245]
+  try {
+    // Corrigido: Usar doc.autoTable em vez de doc.autoTable ou (doc as any).autoTable
+    // @ts-ignore
+    doc.autoTable({
+      head: [colunas.map(coluna => coluna.header)],
+      body: tabelaDados,
+      startY: 35,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8
+      },
+      headStyles: {
+        fillColor: [66, 66, 66],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      }
+    });
+    
+    // Adiciona rodapé
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+      doc.text('Sistema de Gestão de Oficina', 14, doc.internal.pageSize.height - 10);
     }
-  });
-  
-  // Adiciona rodapé
-  const pageCount = (doc as any).internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
-    doc.text('Sistema de Gestão de Oficina', 14, doc.internal.pageSize.height - 10);
+    
+    // Salva o arquivo
+    doc.save(`${titulo.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    throw error;
   }
-  
-  // Salva o arquivo
-  doc.save(`${titulo.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
 // Função para exportar como Excel
@@ -220,114 +225,123 @@ export const exportarRelatorioCompleto = (
     doc.text('Serviços por Mês', 14, yPos);
     yPos += 8;
     
-    (doc as any).autoTable({
-      head: [['Mês', 'Quantidade', 'Valor (R$)']],
-      body: servicos.map(s => [
-        s.mes,
-        s.quantidade,
-        formatarValor(s.valor)
-      ]),
-      startY: yPos,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: {
-        fillColor: [66, 66, 66],
-        textColor: [255, 255, 255]
+    try {
+      // @ts-ignore
+      doc.autoTable({
+        head: [['Mês', 'Quantidade', 'Valor (R$)']],
+        body: servicos.map(s => [
+          s.mes,
+          s.quantidade,
+          formatarValor(s.valor)
+        ]),
+        startY: yPos,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: {
+          fillColor: [66, 66, 66],
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      yPos = doc.lastAutoTable.finalY + 15;
+      
+      // Seção 2: Mecânicos
+      doc.setFontSize(14);
+      doc.text('Desempenho de Mecânicos', 14, yPos);
+      yPos += 8;
+      
+      // @ts-ignore
+      doc.autoTable({
+        head: [['Mecânico', 'Serviços', 'Comissão (R$)']],
+        body: mecanicos.map(m => [
+          m.nome,
+          m.servicos,
+          formatarValor(m.comissao)
+        ]),
+        startY: yPos,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: {
+          fillColor: [66, 66, 66],
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      yPos = doc.lastAutoTable.finalY + 15;
+      
+      // Verifica se precisa de uma nova página
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
       }
-    });
-    
-    yPos = (doc as any).lastAutoTable.finalY + 15;
-    
-    // Seção 2: Mecânicos
-    doc.setFontSize(14);
-    doc.text('Desempenho de Mecânicos', 14, yPos);
-    yPos += 8;
-    
-    (doc as any).autoTable({
-      head: [['Mecânico', 'Serviços', 'Comissão (R$)']],
-      body: mecanicos.map(m => [
-        m.nome,
-        m.servicos,
-        formatarValor(m.comissao)
-      ]),
-      startY: yPos,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: {
-        fillColor: [66, 66, 66],
-        textColor: [255, 255, 255]
+      
+      // Seção 3: Tipos de Serviços
+      doc.setFontSize(14);
+      doc.text('Tipos de Serviços', 14, yPos);
+      yPos += 8;
+      
+      // @ts-ignore
+      doc.autoTable({
+        head: [['Tipo', 'Quantidade', 'Valor (R$)']],
+        body: tiposServico.map(t => [
+          t.nome,
+          t.quantidade,
+          formatarValor(t.valor)
+        ]),
+        startY: yPos,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: {
+          fillColor: [66, 66, 66],
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      yPos = doc.lastAutoTable.finalY + 15;
+      
+      // Verifica se precisa de uma nova página
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
       }
-    });
-    
-    yPos = (doc as any).lastAutoTable.finalY + 15;
-    
-    // Verifica se precisa de uma nova página
-    if (yPos > 240) {
-      doc.addPage();
-      yPos = 20;
+      
+      // Seção 4: Vales
+      doc.setFontSize(14);
+      doc.text('Vales Emitidos', 14, yPos);
+      yPos += 8;
+      
+      // @ts-ignore
+      doc.autoTable({
+        head: [['Mês', 'Quantidade', 'Valor (R$)']],
+        body: vales.map(v => [
+          v.mes,
+          v.quantidade,
+          formatarValor(v.valor)
+        ]),
+        startY: yPos,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: {
+          fillColor: [66, 66, 66],
+          textColor: [255, 255, 255]
+        }
+      });
+      
+      // Adiciona rodapé em todas as páginas
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+        doc.text('Sistema de Gestão de Oficina', 14, doc.internal.pageSize.height - 10);
+      }
+      
+      // Salva o arquivo
+      doc.save(`relatorio_completo_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error("Erro ao gerar PDF completo:", error);
+      throw error;
     }
-    
-    // Seção 3: Tipos de Serviços
-    doc.setFontSize(14);
-    doc.text('Tipos de Serviços', 14, yPos);
-    yPos += 8;
-    
-    (doc as any).autoTable({
-      head: [['Tipo', 'Quantidade', 'Valor (R$)']],
-      body: tiposServico.map(t => [
-        t.nome,
-        t.quantidade,
-        formatarValor(t.valor)
-      ]),
-      startY: yPos,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: {
-        fillColor: [66, 66, 66],
-        textColor: [255, 255, 255]
-      }
-    });
-    
-    yPos = (doc as any).lastAutoTable.finalY + 15;
-    
-    // Verifica se precisa de uma nova página
-    if (yPos > 240) {
-      doc.addPage();
-      yPos = 20;
-    }
-    
-    // Seção 4: Vales
-    doc.setFontSize(14);
-    doc.text('Vales Emitidos', 14, yPos);
-    yPos += 8;
-    
-    (doc as any).autoTable({
-      head: [['Mês', 'Quantidade', 'Valor (R$)']],
-      body: vales.map(v => [
-        v.mes,
-        v.quantidade,
-        formatarValor(v.valor)
-      ]),
-      startY: yPos,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: {
-        fillColor: [66, 66, 66],
-        textColor: [255, 255, 255]
-      }
-    });
-    
-    // Adiciona rodapé em todas as páginas
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
-      doc.text('Sistema de Gestão de Oficina', 14, doc.internal.pageSize.height - 10);
-    }
-    
-    // Salva o arquivo
-    doc.save(`relatorio_completo_${new Date().toISOString().split('T')[0]}.pdf`);
   } else {
     // Cria uma planilha para cada seção
     const wb = XLSX.utils.book_new();
