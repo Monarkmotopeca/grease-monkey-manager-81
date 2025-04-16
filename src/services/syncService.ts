@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import {
   getPendingOperations,
@@ -25,19 +24,12 @@ const sendToApi = async (operation: OfflineOperation): Promise<boolean> => {
 };
 
 // Sincroniza os dados com o servidor
-export const synchronizeData = async (): Promise<{ 
-  success: boolean, 
-  processed: number, 
-  failed: number,
-  details?: string[]
-}> => {
-  // Verifica se há conexão com a internet
+export const synchronizeData = async () => {
   if (!navigator.onLine) {
     return { success: false, processed: 0, failed: 0 };
   }
   
   try {
-    // Busca todas as operações pendentes
     const pendingOperations = await getPendingOperations();
     
     if (pendingOperations.length === 0) {
@@ -48,22 +40,19 @@ export const synchronizeData = async (): Promise<{
     let failed = 0;
     const details: string[] = [];
     
-    // Exibe um toast de início
     const syncToast = toast.loading(`Sincronizando ${pendingOperations.length} alterações...`, {
-      duration: 0.2 * 1000
+      duration: 200,
+      position: "bottom-left"
     });
     
-    // Processa cada operação sequencialmente
     for (const operation of pendingOperations) {
       try {
         const success = await sendToApi(operation);
         
         if (success) {
-          // Remove a operação da fila
           await removePendingOperation(operation.id);
           processed++;
           
-          // Adiciona detalhes da operação sincronizada
           const entityName = operation.entity === 'mecanico' 
             ? 'Mecânico' 
             : operation.entity === 'servico' 
@@ -78,7 +67,6 @@ export const synchronizeData = async (): Promise<{
           
           details.push(`${entityName} ${operationName} com sucesso.`);
           
-          // Atualiza o toast com o progresso
           toast.loading(`Sincronizando... (${processed}/${pendingOperations.length})`, {
             id: syncToast,
             duration: 0.2 * 1000
@@ -92,15 +80,16 @@ export const synchronizeData = async (): Promise<{
       }
     }
     
-    // Atualiza o toast final
     if (failed === 0) {
       toast.success(`Sincronização concluída! ${processed} alterações enviadas.`, {
-        duration: 0.2 * 1000,
+        duration: 200,
+        position: "bottom-left",
         id: syncToast
       });
     } else {
       toast.error(`Sincronização parcial: ${failed} alterações não sincronizadas.`, {
-        duration: 0.2 * 1000,
+        duration: 200,
+        position: "bottom-left",
         id: syncToast
       });
     }
@@ -114,7 +103,8 @@ export const synchronizeData = async (): Promise<{
   } catch (error) {
     console.error("Erro na sincronização:", error);
     toast.error("Erro ao sincronizar dados. Tente novamente mais tarde.", {
-      duration: 0.2 * 1000
+      duration: 200,
+      position: "bottom-left"
     });
     return { success: false, processed: 0, failed: 0 };
   }

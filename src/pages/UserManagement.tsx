@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,10 +40,10 @@ import { UserPlus, Trash2, KeyRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// Define a schema where all fields are required
+// Define schema for the form
 const userFormSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().min(1, "Email é obrigatório"),
+  cpfCnpj: z.string().min(1, "CPF ou CNPJ é obrigatório"),
   password: z.string().min(1, "Senha é obrigatória"),
   perfil: z.enum(["admin", "usuario", "mecanico"]),
 });
@@ -63,7 +62,7 @@ const UserManagement = () => {
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       nome: "",
-      email: "",
+      cpfCnpj: "",
       password: "",
       perfil: "usuario",
     },
@@ -85,15 +84,50 @@ const UserManagement = () => {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // Since data is validated by zod, all required fields will be present
-      await addUser(data);
+      await addUser({
+        nome: data.nome,
+        cpfCnpj: data.cpfCnpj,
+        password: data.password,
+        perfil: data.perfil
+      });
       form.reset();
       setOpenDialog(false);
-      toast.success("Usuário adicionado com sucesso!");
+      toast.success("Usuário adicionado com sucesso!", {
+        duration: 200,
+        position: "bottom-left"
+      });
       loadUsers();
     } catch (error) {
       console.error("Erro ao adicionar usuário:", error);
       toast.error("Erro ao adicionar usuário");
+    }
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    try {
+      await removeUser(userId);
+      toast.success("Usuário removido com sucesso!");
+      loadUsers();
+    } catch (error) {
+      console.error("Erro ao remover usuário:", error);
+      toast.error("Erro ao remover usuário");
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword) {
+      toast.error("A nova senha não pode estar vazia");
+      return;
+    }
+
+    try {
+      await updateUserPassword(selectedUserId, newPassword);
+      setNewPassword("");
+      setOpenPasswordDialog(false);
+      toast.success("Senha atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar senha:", error);
+      toast.error("Erro ao atualizar senha");
     }
   };
 
@@ -138,79 +172,87 @@ const UserManagement = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+              <DialogTitle>
+                {editingMecanico ? "Editar Mecânico" : "Novo Mecânico"}
+              </DialogTitle>
               <DialogDescription>
-                Preencha as informações abaixo para criar um novo usuário no sistema.
+                {editingMecanico 
+                  ? "Atualize as informações do mecânico abaixo." 
+                  : "Preencha os dados para cadastrar um novo mecânico."}
               </DialogDescription>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                <FormField
-                  control={form.control}
-                  name="nome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="nome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Fantasia</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Nome comercial ou popular da empresa" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cpfCnpj"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF ou CNPJ</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Digite o CPF ou CNPJ" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="perfil"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Perfil</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input placeholder="Digite o nome completo" {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o perfil" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite o email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="perfil"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Perfil</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o perfil" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="admin">Administrador</SelectItem>
-                          <SelectItem value="usuario">Usuário</SelectItem>
-                          <SelectItem value="mecanico">Mecânico</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Digite a senha" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button type="submit">Salvar</Button>
-                </DialogFooter>
-              </form>
-            </Form>
+                      <SelectContent>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="usuario">Usuário</SelectItem>
+                        <SelectItem value="mecanico">Mecânico</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Digite a senha" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">Salvar</Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
