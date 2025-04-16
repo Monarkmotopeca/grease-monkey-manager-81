@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import {
   getPendingOperations,
@@ -49,7 +48,9 @@ export const synchronizeData = async (): Promise<{
     const details: string[] = [];
     
     // Exibe um toast de início
-    const syncToast = toast.loading(`Sincronizando ${pendingOperations.length} alterações...`);
+    const syncToast = toast.loading(`Sincronizando ${pendingOperations.length} alterações...`, {
+      duration: 200
+    });
     
     // Processa cada operação sequencialmente
     for (const operation of pendingOperations) {
@@ -92,10 +93,12 @@ export const synchronizeData = async (): Promise<{
     // Atualiza o toast final
     if (failed === 0) {
       toast.success(`Sincronização concluída! ${processed} alterações enviadas.`, {
+        duration: 200,
         id: syncToast
       });
     } else {
       toast.error(`Sincronização parcial: ${failed} alterações não sincronizadas.`, {
+        duration: 200,
         id: syncToast
       });
     }
@@ -108,7 +111,9 @@ export const synchronizeData = async (): Promise<{
     };
   } catch (error) {
     console.error("Erro na sincronização:", error);
-    toast.error("Erro ao sincronizar dados. Tente novamente mais tarde.");
+    toast.error("Erro ao sincronizar dados. Tente novamente mais tarde.", {
+      duration: 200
+    });
     return { success: false, processed: 0, failed: 0 };
   }
 };

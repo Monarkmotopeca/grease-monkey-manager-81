@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
-  Home, Users, Wrench, Receipt, BarChart, Menu, LogOut, 
+  Users, Wrench, Receipt, BarChart, Menu, LogOut, 
   ChevronLeft, User, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,7 +18,6 @@ type MenuItem = {
 };
 
 const menuItems: MenuItem[] = [
-  { name: "Dashboard", path: "/dashboard", icon: Home, roles: ["admin", "usuario", "mecanico"] },
   { name: "Mecânicos", path: "/mecanicos", icon: Users, roles: ["admin", "usuario"] },
   { name: "Serviços", path: "/servicos", icon: Wrench, roles: ["admin", "usuario", "mecanico"] },
   { name: "Vales", path: "/vales", icon: Receipt, roles: ["admin", "usuario"] },
@@ -33,7 +31,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Preservar estado do sidebar entre navegações
   useEffect(() => {
     const savedCollapsed = localStorage.getItem("sidebar_collapsed");
     if (savedCollapsed) {
@@ -57,14 +54,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <aside
         className={cn(
           "bg-white shadow-lg transition-all duration-300 flex flex-col",
           collapsed ? "w-16" : "w-64"
         )}
       >
-        {/* Header */}
         <div className="p-4 border-b flex items-center justify-between">
           {!collapsed && (
             <h2 className="text-xl font-semibold">Oficina</h2>
@@ -74,7 +69,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </Button>
         </div>
 
-        {/* Menu */}
         <nav className="flex-1 py-4 overflow-y-auto">
           <ul className="space-y-1 px-2">
             {menuItems
@@ -107,7 +101,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </ul>
         </nav>
 
-        {/* User profile */}
         <div className="border-t p-4">
           <div className="flex items-center">
             <div className="bg-gray-200 rounded-full p-2">
@@ -133,7 +126,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           {children}
