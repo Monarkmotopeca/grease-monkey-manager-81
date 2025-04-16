@@ -1,11 +1,11 @@
 
+import React from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 import { setupSyncListener } from "@/services/syncService";
 import { LockScreen } from "@/components/LockScreen";
 
@@ -23,8 +23,8 @@ import { AppLayout } from "./components/AppLayout";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Configurar o ouvinte de sincronização quando a aplicação iniciar
-  useEffect(() => {
+  // Setup the sync listener when the application starts
+  React.useEffect(() => {
     const cleanupListener = setupSyncListener();
     return cleanupListener;
   }, []);
