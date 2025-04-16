@@ -41,10 +41,11 @@ import { UserPlus, Trash2, KeyRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+// Define a schema where all fields are required
 const userFormSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  email: z.string(),
-  password: z.string(),
+  email: z.string().min(1, "Email é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
   perfil: z.enum(["admin", "usuario", "mecanico"]),
 });
 
@@ -84,6 +85,7 @@ const UserManagement = () => {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
+      // Since data is validated by zod, all required fields will be present
       await addUser(data);
       form.reset();
       setOpenDialog(false);
@@ -151,6 +153,19 @@ const UserManagement = () => {
                       <FormLabel>Nome</FormLabel>
                       <FormControl>
                         <Input placeholder="Digite o nome completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite o email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
