@@ -244,7 +244,7 @@ export const RelatorioMecanicoDiario = () => {
               <SelectValue placeholder="Selecione um mecânico" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os Mecânicos</SelectItem>
+              <SelectItem value="all">Todos os Mecânicos</SelectItem>
               {mockMecanicos.map((mecanico) => (
                 <SelectItem key={mecanico.id} value={mecanico.id}>
                   {mecanico.nome}

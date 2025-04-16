@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RelatorioMecanicoDiario from "@/components/RelatorioMecanicoDiario";
 
-// Mock de dados para os relatórios
 const mockServicosData = [
   { mes: 'Jan', quantidade: 25, valor: 4200 },
   { mes: 'Fev', quantidade: 28, valor: 4800 },
@@ -56,7 +54,6 @@ const mockValesData = [
   { mes: 'Jun', quantidade: 30, valor: 3800 },
 ];
 
-// Cores para os gráficos
 const COLORS = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57'];
 
 const Relatorios = () => {
@@ -157,7 +154,6 @@ const Relatorios = () => {
           </TabsList>
           
           <TabsContent value="geral">
-            {/* Resumo */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="pb-2">
@@ -220,7 +216,6 @@ const Relatorios = () => {
               </Card>
             </div>
 
-            {/* Gráficos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <Card>
                 <CardHeader>
