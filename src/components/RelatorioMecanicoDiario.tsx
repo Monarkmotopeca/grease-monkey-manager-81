@@ -68,6 +68,12 @@ const PagamentoDialog = ({ mecanicoId, mecanicoNome, onPagamentoRealizado }: Pag
       return;
     }
     
+    const valor = parseFloat(valorPago);
+    if (isNaN(valor) || valor <= 0) {
+      toast.error("Por favor, informe um valor válido!");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
